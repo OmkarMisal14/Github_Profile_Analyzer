@@ -1,85 +1,84 @@
-import prisma from "../config/prisma.js";
+import pool from "../config/db.js";
 import { analyzeGithubProfile } from "./githubService.js";
-
 
 export const analyzeAndStoreProfile = async (username) => {
   const analysis = await analyzeGithubProfile(username);
 
-  const profile = await prisma.githubProfile.upsert({
-    where: {
-      username: analysis.username,
-    },
+  const githubCreatedAt = new Date(analysis.githubCreatedAt);
 
-    update: {
-      name: analysis.name,
-      bio: analysis.bio,
+  // Check if the user already exists to prevent auto-increment gap issues
+  const [existingRows] = await pool.query('SELECT id FROM GithubProfile WHERE username = ?', [analysis.username]);
 
-      avatarUrl: analysis.avatarUrl,
-      profileUrl: analysis.profileUrl,
+  if (existingRows.length > 0) {
+    const updateQuery = `
+      UPDATE GithubProfile SET
+        name = ?, bio = ?, avatarUrl = ?, profileUrl = ?,
+        publicRepos = ?, publicGists = ?, followers = ?, following = ?,
+        totalStars = ?, totalForks = ?, accountAgeDays = ?, followerRepoRatio = ?,
+        githubCreatedAt = ?, updatedAt = NOW()
+      WHERE username = ?
+    `;
 
-      publicRepos: analysis.publicRepos,
-      publicGists: analysis.publicGists,
+    const updateValues = [
+      analysis.name || null,
+      analysis.bio || null,
+      analysis.avatarUrl,
+      analysis.profileUrl,
+      analysis.publicRepos,
+      analysis.publicGists,
+      analysis.followers,
+      analysis.following,
+      analysis.totalStars || 0,
+      analysis.totalForks || 0,
+      analysis.accountAgeDays,
+      analysis.followerRepoRatio || null,
+      githubCreatedAt,
+      analysis.username
+    ];
 
-      followers: analysis.followers,
-      following: analysis.following,
+    await pool.query(updateQuery, updateValues);
+  } else {
+    const insertQuery = `
+      INSERT INTO GithubProfile (
+        username, githubId, name, bio, avatarUrl, profileUrl,
+        publicRepos, publicGists, followers, following,
+        totalStars, totalForks, accountAgeDays, followerRepoRatio,
+        githubCreatedAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
 
-      totalStars: analysis.totalStars,
-      totalForks: analysis.totalForks,
+    const insertValues = [
+      analysis.username,
+      analysis.githubId,
+      analysis.name || null,
+      analysis.bio || null,
+      analysis.avatarUrl,
+      analysis.profileUrl,
+      analysis.publicRepos,
+      analysis.publicGists,
+      analysis.followers,
+      analysis.following,
+      analysis.totalStars || 0,
+      analysis.totalForks || 0,
+      analysis.accountAgeDays,
+      analysis.followerRepoRatio || null,
+      githubCreatedAt
+    ];
 
-      accountAgeDays: analysis.accountAgeDays,
-      followerRepoRatio: analysis.followerRepoRatio,
+    await pool.query(insertQuery, insertValues);
+  }
 
-      githubCreatedAt: new Date(
-        analysis.githubCreatedAt
-      ),
-    },
-
-    create: {
-      username: analysis.username,
-      githubId: analysis.githubId,
-
-      name: analysis.name,
-      bio: analysis.bio,
-
-      avatarUrl: analysis.avatarUrl,
-      profileUrl: analysis.profileUrl,
-
-      publicRepos: analysis.publicRepos,
-      publicGists: analysis.publicGists,
-
-      followers: analysis.followers,
-      following: analysis.following,
-
-      totalStars: analysis.totalStars,
-      totalForks: analysis.totalForks,
-
-      accountAgeDays: analysis.accountAgeDays,
-      followerRepoRatio: analysis.followerRepoRatio,
-
-      githubCreatedAt: new Date(
-        analysis.githubCreatedAt
-      ),
-    },
-  });
-
-  return profile;
+  const [rows] = await pool.query('SELECT * FROM GithubProfile WHERE username = ?', [analysis.username]);
+  return rows[0];
 };
 
 export const getAllProfiles = async () => {
   console.log("Fetching all profiles from database...");
-  return prisma.githubProfile.findMany({
-    orderBy: {
-      analyzedAt: "desc",
-    },
-  });
+  const [rows] = await pool.query('SELECT * FROM GithubProfile ORDER BY analyzedAt DESC');
+  return rows;
 };
 
-export const getProfileByUsername = async (
-  username
-) => {
-  return prisma.githubProfile.findUnique({
-    where: {
-      username,
-    },
-  });
+export const getProfileByUsername = async (username) => {
+  const [rows] = await pool.query('SELECT * FROM GithubProfile WHERE username = ?', [username]);
+  return rows[0] || null;
 };
