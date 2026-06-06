@@ -45,6 +45,7 @@ DB_USER=root
 DB_PASSWORD=your_password
 
 GITHUB_TOKEN=your_personal_access_token
+GITHUB_API_URL=https://api.github.com
 ```
 
 > **Note:** `GITHUB_TOKEN` is optional but recommended to avoid GitHub API rate limits.
@@ -55,12 +56,6 @@ Login to MySQL and create the database:
 
 ```sql
 CREATE DATABASE github_profile_analyzer;
-```
-
-If your project includes a SQL schema file, import it:
-
-```bash
-mysql -u root -p github_profile_analyzer < schema.sql
 ```
 
 ### 5. Start the Application
