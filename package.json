@@ -1,0 +1,37 @@
+{
+  "name": "github-profile-analyzer",
+  "version": "1.0.0",
+  "description": "It is the backend system build on node js, which uses the github profile name and retrieve the details of that profile",
+  "keywords": [
+    "github"
+  ],
+  "homepage": "https://github.com/OmkarMisal14/Github_Profile_Analyzer#readme",
+  "bugs": {
+    "url": "https://github.com/OmkarMisal14/Github_Profile_Analyzer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OmkarMisal14/Github_Profile_Analyzer.git"
+  },
+  "license": "ISC",
+  "author": "Omkar Misal",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "prisma.dev && node server.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "axios": "^1.17.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.4",
+    "process": "^0.11.10"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  }
+}
