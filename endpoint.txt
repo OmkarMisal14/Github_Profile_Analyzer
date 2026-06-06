@@ -1,0 +1,11 @@
+Fetch all analyzed profiles:
+GET https://github-profile-analyzer.newom.in/api/profiles/
+
+
+Fetch single analyzed profile by username:
+GET https://github-profile-analyzer.newom.in/api/profiles/:username
+
+
+
+Analyze a GitHub profile and store insights:
+POST https://github-profile-analyzer.newom.in/api/profiles/:username
